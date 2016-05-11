@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 	struct payee *p;
 	double txfee;
 
-	if ( argc != 3) {
+	if (argc != 3) {
 		fprintf(stderr, "usage: %s \"fromaccount\" "
 				"{\"address\":amount,...}\n", argv[0]);
 		return 1;

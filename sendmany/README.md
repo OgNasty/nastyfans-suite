@@ -22,6 +22,7 @@ Create a raw transaction that does:
 ```
 export CHANGE_ADDRESS=mmGbssaHHGpLDrwV3HawNvLj91wfQg5Aip
 export TX_FEE=0.0005
+export ACCOUNT_ROOT=/var/lib/nastyfans/accounts
 ./sendmany testaccount '{
 	"mh4J1GtZfjd4qZRPwPorLs5stNaKXGKBxr":1.3,
 	"mmGbssaHHGpLDrwV3HawNvLj91wfQg5Aip":0,
@@ -35,6 +36,6 @@ export TX_FEE=0.0005
 - [x] implement listunspent parsing
 - [x] implement command line parsing
 - [x] implement transaction building logic
-- [ ] implement accounting
-- [ ] improve documentation
+- [x] implement accounting
+- [ ] improve documentation / add sample data
 - [ ] extract general tool code to separate libraries

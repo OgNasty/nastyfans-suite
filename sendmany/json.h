@@ -32,4 +32,6 @@ extern struct payee *parse_payee(const char *arg);
 extern void free_payee(struct payee *plist);
 extern void print_outputs(struct payee *plist, double max);
 
+extern double get_amount(const char *filename);
+
 #endif /* JSON_H */

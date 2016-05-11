@@ -365,3 +365,19 @@ void print_outputs(struct payee *plist, double max)
 
 	printf("}");
 }
+
+double get_amount(const char *filename)
+{
+	struct json_object *o;
+	double d;
+
+	o = json_object_from_file(filename);
+	if (!o)
+		error_exit();
+
+	d = get_double(o, "amount");
+
+	json_object_put(o);
+
+	return d;
+}

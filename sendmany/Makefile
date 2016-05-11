@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g -Wall -Werror
+CFLAGS = -g -Wall -Werror -D_GNU_SOURCE
 LDFLAGS = -ljson-c
 HEADERS = json.h error.h unspent.h unspent_sort.h payee.h account.h
 SRC = sendmany.c json.c unspent_sort.c account.c
