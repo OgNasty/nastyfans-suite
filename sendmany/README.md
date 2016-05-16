@@ -37,5 +37,6 @@ export ACCOUNT_ROOT=/var/lib/nastyfans/accounts
 - [x] implement command line parsing
 - [x] implement transaction building logic
 - [x] implement accounting
-- [ ] improve documentation / add sample data
 - [ ] extract general tool code to separate libraries
+- [ ] add text to errors
+- [ ] improve documentation / add sample data
