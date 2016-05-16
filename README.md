@@ -8,6 +8,10 @@ See individual tool sub-directories for details of each tool.
 [sendmany](sendmany/) - create bitcoin-cli commands to generate raw
                         transactions
 
+[move](move/) - transfer funds between accounts
+
+[listaccounts](listaccounts/) - list account balances
+
 ## License
 
 nastyfans-suite is free software: you can redistribute it and/or modify
