@@ -22,6 +22,8 @@ along with nastyfans-suite.  If not, see <http://www.gnu.org/licenses/>.
 #include <json-c/json.h>
 #include "unspent.h"
 #include "payee.h"
+#include "move.h"
+#include "account.h"
 #include "error.h"
 
 static struct json_object *global_unspent_obj;
@@ -33,8 +35,13 @@ static const char *get_string(struct json_object *o, const char *key)
 	struct json_object *so;
 	const char *s;
 
-	if (!json_object_object_get_ex(o, key, &so))
-		error_exit();
+	if (key) {
+		if (!json_object_object_get_ex(o, key, &so))
+			error_exit();
+	} else {
+		/* passed json_object is already int object */
+		so = o;
+	}
 
 	if (!json_object_is_type(so, json_type_string))
 		error_exit();
@@ -51,8 +58,13 @@ static int get_int(struct json_object *o, const char *key)
 	struct json_object *so;
 	int i;
 
-	if (!json_object_object_get_ex(o, key, &so))
-		error_exit();
+	if (key) {
+		if (!json_object_object_get_ex(o, key, &so))
+			error_exit();
+	} else {
+		/* passed json_object is already int object */
+		so = o;
+	}
 
 	if (!json_object_is_type(so, json_type_int))
 		error_exit();
@@ -99,6 +111,8 @@ static double get_double(struct json_object *o, const char *key)
 			error_exit();
 
 		d = i;
+	} else {
+		error_exit();
 	}
 
 	return d;
@@ -357,7 +371,7 @@ void print_outputs(struct payee *plist, double max)
 		if (p->amount < 0.00000001)
 			continue;
 
-		printf("\"%s\":%.8f", p->address, p->amount);
+		printf("\"%s\":%0.8f", p->address, p->amount);
 
 		if (p->next)
 			printf(",");
@@ -380,4 +394,72 @@ double get_amount(const char *filename)
 	json_object_put(o);
 
 	return d;
+}
+
+#if 0
+static void print_flat_object(struct json_object *obj)
+{
+	struct json_object_iterator it_end;
+	struct json_object_iterator it;
+	struct json_object *v;
+	const char *key;
+
+	it = json_object_iter_begin(obj);
+	it_end = json_object_iter_end(obj);
+
+	printf("{");
+	while (!json_object_iter_equal(&it, &it_end)) {
+		key = json_object_iter_peek_name(&it);
+		if (!key)
+			error_exit();
+
+		v = json_object_iter_peek_value(&it);
+		if (!v)
+			error_exit();
+
+		printf("\"%s\": ", key);
+
+		if (json_object_is_type(v, json_type_double))
+			printf("%0.8f", get_double(v, NULL));
+		else if (json_object_is_type(v, json_type_int))
+			printf("%d", get_int(v, NULL));
+		else if (json_object_is_type(v, json_type_string))
+			printf("\"%s\"", get_string(v, NULL));
+		else
+			error_exit();
+
+		json_object_iter_next(&it);
+		if (!json_object_iter_equal(&it, &it_end))
+			printf(",");
+	}
+	printf("}");
+}
+#endif
+
+void write_account_move(FILE *f, struct move *mv)
+{
+	fprintf(f, "{\n");
+	fprintf(f, "  \"account\": \"%s\",\n", mv->account);
+	fprintf(f, "  \"category\": \"move\",\n");
+	fprintf(f, "  \"time\": %u,\n", mv->time);
+	fprintf(f, "  \"amount\": %0.8f,\n", mv->amount);
+	fprintf(f, "  \"otheraccount\": \"%s\",\n", mv->otheraccount);
+	fprintf(f, "  \"comment\": \"\"\n");
+	fprintf(f, "}\n");
+}
+
+void print_accounts(struct account *alist)
+{
+	struct account *a;
+
+	printf("{\n");
+
+	for (a = alist; a; a = a->next) {
+		printf("  \"%s\": %0.8f", account_get_name(a), a->amount);
+		if (a->next)
+			printf(",");
+		printf("\n");
+	}
+
+	printf("}\n");
 }

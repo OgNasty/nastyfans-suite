@@ -16,22 +16,19 @@ You should have received a copy of the GNU General Public License
 along with nastyfans-suite.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef JSON_H
-#define JSON_H
+#ifndef ERROR_H
+#define ERROR_H
 
-struct unspent;
-struct payee;
+#include <stdio.h>
+#include <stdlib.h>
 
-extern struct unspent *load_unspent(const char *filename,
-	struct unspent *(insert)(struct unspent *, struct unspent *));
-extern void unload_unspent(struct unspent *ulist);
-extern void print_inputs(struct unspent *ulist, struct unspent *ulast,
-			 double sum);
+extern void error_cleanup(int error);
+extern int error_add_cleanup(const char *filename);
 
-extern struct payee *parse_payee(const char *arg);
-extern void free_payee(struct payee *plist);
-extern void print_outputs(struct payee *plist, double max);
+#define error_exit() do { \
+	fprintf(stderr, "error: %s:%d\n", __func__, __LINE__); \
+	error_cleanup(1); \
+	exit(1); \
+} while (0)
 
-extern double get_amount(const char *filename);
-
-#endif /* JSON_H */
+#endif /* ERROR_H */

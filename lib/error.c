@@ -16,9 +16,48 @@ You should have received a copy of the GNU General Public License
 along with nastyfans-suite.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ACCOUNT_H
-#define ACCOUNT_H
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include "error.h"
 
-extern double account_amount(const char *name);
+struct clean_file {
+	char *filename;
+	struct clean_file *next;
+};
 
-#endif /* ACCOUNT_H */
+static struct clean_file *clean_list;
+
+void error_cleanup(int error)
+{
+	struct clean_file *cf;
+
+	while (clean_list) {
+		cf = clean_list;
+		clean_list = cf->next;
+
+		if (error)
+			unlink(cf->filename);
+
+		free(cf->filename);
+		free(cf);
+	}
+}
+
+int error_add_cleanup(const char *filename)
+{
+	struct clean_file *cf;
+
+	cf = calloc(1, sizeof(*cf));
+	if (!cf)
+		error_exit();
+
+	cf->filename = strdup(filename);
+	if (!cf->filename)
+		error_exit();
+
+	cf->next = clean_list;
+	clean_list = cf;
+
+	return 0;
+}
