@@ -18,6 +18,7 @@ along with nastyfans-suite.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 #include <dirent.h>
 #include <unistd.h>
@@ -68,9 +69,23 @@ static const char *get_root(void)
 	return account_root;
 }
 
+static struct dirent *alloc_dirent(const char *dirpath)
+{
+	long name_max;
+	size_t len;
+
+	name_max = pathconf(dirpath, _PC_NAME_MAX);
+	if (name_max == -1)
+		name_max = PATH_MAX;
+	len = offsetof(struct dirent, d_name) + name_max + 1;
+
+	return malloc(len);
+}
+
 double account_amount(const char *name)
 {
 	const char *account_root;
+	struct dirent *entry_buf;
 	struct dirent *entry;
 	double amount = 0.0;
 	char *account;
@@ -85,6 +100,10 @@ double account_amount(const char *name)
 	if (ret < 0)
 		error_exit();
 
+	entry_buf = alloc_dirent(account);
+	if (!entry_buf)
+		error_exit();
+
 	d = opendir(account);
 	if (!d)
 		error_exit();
@@ -92,7 +111,8 @@ double account_amount(const char *name)
 	while (1) {
 		char *account_tx;
 
-		entry = readdir(d);
+		if (readdir_r(d, entry_buf, &entry) != 0)
+			error_exit();
 		if (!entry)
 			break;
 
@@ -109,6 +129,8 @@ double account_amount(const char *name)
 	}
 
 	closedir(d);
+
+	free(entry_buf);
 
 	free(account);
 
@@ -200,6 +222,7 @@ struct account *accounts_load(
 {
 	struct account *alist = NULL;
 	const char *account_root;
+	struct dirent *entry_buf;
 	struct dirent *entry;
 	struct account *a;
 	double amount;
@@ -207,12 +230,17 @@ struct account *accounts_load(
 
 	account_root = get_root();
 
+	entry_buf = alloc_dirent(account_root);
+	if (!entry_buf)
+		error_exit();
+
 	d = opendir(account_root);
 	if (!d)
 		error_exit();
 
 	while (1) {
-		entry = readdir(d);
+		if (readdir_r(d, entry_buf, &entry) != 0)
+			error_exit();
 		if (!entry)
 			break;
 
@@ -230,7 +258,9 @@ struct account *accounts_load(
 		if (!a)
 			error_exit();
 
-		a->name = entry->d_name;
+		a->name = strdup(entry->d_name);
+		if (!a->name)
+			error_exit();
 		a->amount = amount;
 
 		alist = insert(alist, a);
@@ -238,5 +268,19 @@ struct account *accounts_load(
 
 	closedir(d);
 
+	free(entry_buf);
+
 	return alist;
+}
+
+void accounts_unload(struct account *alist)
+{
+	struct account *a;
+
+	while (alist) {
+		a = alist;
+		alist = a->next;
+		free(a->name);
+		free(a);
+	}
 }

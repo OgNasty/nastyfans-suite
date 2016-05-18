@@ -20,7 +20,7 @@ along with nastyfans-suite.  If not, see <http://www.gnu.org/licenses/>.
 #define ACCOUNT_H
 
 struct account {
-	const char *name;
+	char *name;
 	double amount;
 	struct account *next;
 };
@@ -32,5 +32,6 @@ extern double account_amount(const char *name);
 extern void account_move(struct move *mv);
 extern struct account *accounts_load(
 	struct account *(insert)(struct account *, struct account *));
+extern void accounts_unload(struct account *alist);
 
 #endif /* ACCOUNT_H */

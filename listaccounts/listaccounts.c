@@ -62,5 +62,7 @@ int main(int argc, char *argv[])
 
 	print_accounts(alist);
 
+	accounts_unload(alist);
+
 	return 0;
 }
