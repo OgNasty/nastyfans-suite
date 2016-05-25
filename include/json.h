@@ -37,6 +37,7 @@ extern void free_payee(struct payee *plist);
 extern void print_outputs(struct payee *plist, double max);
 
 extern double get_amount(const char *filename);
+extern char *alloc_txid(const char *filename);
 
 extern void write_account_move(FILE *f, struct move *mv);
 extern void print_accounts(struct account *alist);

@@ -12,6 +12,14 @@ See individual tool sub-directories for details of each tool.
 
 [listaccounts](listaccounts/) - list account balances
 
+[assignfee](assignfee/) - transfer funds to compensate transaction fees
+
+## TODO
+
+- [ ] add text to errors
+- [ ] detail documentation
+- [ ] provide sample data
+
 ## License
 
 nastyfans-suite is free software: you can redistribute it and/or modify

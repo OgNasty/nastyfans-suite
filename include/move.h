@@ -24,6 +24,7 @@ struct move {
 	unsigned int time;
 	double amount;
 	const char *otheraccount;
+	const char *comment;
 };
 
 #endif /* MOVE_H */

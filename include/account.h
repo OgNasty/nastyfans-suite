@@ -30,6 +30,7 @@ struct move;
 extern const char *account_get_name(struct account *a);
 extern double account_amount(const char *name);
 extern void account_move(struct move *mv);
+extern void account_assignfee(const char *name, const char *txid);
 extern struct account *accounts_load(
 	struct account *(insert)(struct account *, struct account *));
 extern void accounts_unload(struct account *alist);

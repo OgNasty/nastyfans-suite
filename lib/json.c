@@ -104,7 +104,8 @@ static double get_double(struct json_object *o, const char *key)
 		int i;
 
 		i = json_object_get_int(so);
-		if (i < 0)
+
+		if (i == INT32_MIN)
 			error_exit();
 
 		if (i == INT32_MAX)
@@ -396,6 +397,34 @@ double get_amount(const char *filename)
 	return d;
 }
 
+char *alloc_txid(const char *filename)
+{
+	struct json_object *o;
+	const char *cs;
+	char *s;
+
+	o = json_object_from_file(filename);
+	if (!o)
+		error_exit();
+
+	cs = get_string(o, "category");
+	if (strcmp(cs, "fee") == 0 ||
+	    strcmp(cs, "send") == 0 ||
+	    strcmp(cs, "receive") == 0) {
+		cs = get_string(o, "txid");
+	} else {
+		cs = "NoTxId";
+	}
+
+	s = strdup(cs);
+	if (!s)
+		error_exit();
+
+	json_object_put(o);
+
+	return s;
+}
+
 #if 0
 static void print_flat_object(struct json_object *obj)
 {
@@ -444,7 +473,7 @@ void write_account_move(FILE *f, struct move *mv)
 	fprintf(f, "  \"time\": %u,\n", mv->time);
 	fprintf(f, "  \"amount\": %0.8f,\n", mv->amount);
 	fprintf(f, "  \"otheraccount\": \"%s\",\n", mv->otheraccount);
-	fprintf(f, "  \"comment\": \"\"\n");
+	fprintf(f, "  \"comment\": \"%s\"\n", mv->comment ? mv->comment : "");
 	fprintf(f, "}\n");
 }
 

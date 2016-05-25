@@ -22,6 +22,7 @@ along with nastyfans-suite.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <time.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -84,13 +85,20 @@ static struct dirent *alloc_dirent(const char *dirpath)
 
 double account_amount(const char *name)
 {
+	unsigned int max_time = -1;
 	const char *account_root;
+	const char *max_time_str;
 	struct dirent *entry_buf;
 	struct dirent *entry;
 	double amount = 0.0;
+	unsigned int time;
 	char *account;
 	int ret;
 	DIR *d;
+
+	max_time_str = getenv("MAX_TIME");
+	if (max_time_str && max_time_str[0])
+		max_time = atoi(max_time_str);
 
 	name = name_to_dirname(name);
 
@@ -117,6 +125,10 @@ double account_amount(const char *name)
 			break;
 
 		if (entry->d_name[0] == '.')
+			continue;
+
+		time = atoi(entry->d_name);
+		if (time > max_time)
 			continue;
 
 		ret = asprintf(&account_tx, "%s/%s", account, entry->d_name);
@@ -215,6 +227,81 @@ void account_move(struct move *mv)
 	do_account_move(account_root, mv);
 
 	error_cleanup(0);
+}
+
+void account_assignfee(const char *name, const char *txid)
+{
+	const char *account_root;
+	struct dirent *entry_buf;
+	struct dirent *entry;
+	struct move mv;
+	double amount;
+	char *account;
+	int ret;
+	DIR *d;
+
+	account_root = get_root();
+
+	ret = asprintf(&account, "%s/(FEE)", account_root);
+	if (ret < 0)
+		error_exit();
+
+	entry_buf = alloc_dirent(account);
+	if (!entry_buf)
+		error_exit();
+
+	d = opendir(account);
+	if (!d)
+		error_exit();
+
+	while (1) {
+		char *account_tx;
+		char *id;
+
+		if (readdir_r(d, entry_buf, &entry) != 0)
+			error_exit();
+		if (!entry)
+			error_exit();
+
+		if (entry->d_name[0] == '.')
+			continue;
+
+		ret = asprintf(&account_tx, "%s/%s", account, entry->d_name);
+		if (ret < 0)
+			error_exit();
+
+		id = alloc_txid(account_tx);
+		if (!id)
+			error_exit();
+
+		if (strcmp(txid, id) == 0) {
+			amount = get_amount(account_tx);
+			if (amount < 0.0)
+				amount = -amount;
+			free(id);
+			free(account_tx);
+			break;
+		}
+
+		free(id);
+		free(account_tx);
+	}
+
+	closedir(d);
+
+	free(entry_buf);
+
+	free(account);
+
+	memset(&mv, 0, sizeof(mv));
+
+	mv.otheraccount = name;
+	mv.account = "(FEE)";
+	mv.amount = amount;
+	mv.time = time(NULL);
+	mv.comment = txid;
+
+	account_move(&mv);
 }
 
 struct account *accounts_load(
