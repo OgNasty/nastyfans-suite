@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
 	const char *change_address;
 	double amount_payout = 0.0;
 	double amount_fromaccount;
+	const char *listunspent;
 	struct unspent *ulist;
 	struct unspent *ulast;
 	const char *txfee_str;
@@ -55,6 +56,12 @@ int main(int argc, char *argv[])
 	if (!change_address[0])
 		error_exit();
 
+	listunspent = getenv("LISTUNSPENT");
+	if (!listunspent)
+		error_exit();
+	if (!listunspent[0])
+		error_exit();
+
 	txfee_str = getenv("TX_FEE");
 	if (!txfee_str)
 		error_exit();
@@ -71,7 +78,7 @@ int main(int argc, char *argv[])
 
 	amount_fromaccount = account_amount(argv[1]);
 
-	ulist = load_unspent("listunspent", sort_insert_unspent);
+	ulist = load_unspent(listunspent, sort_insert_unspent);
 	if (!ulist)
 		error_exit();
 
