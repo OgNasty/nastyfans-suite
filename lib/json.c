@@ -71,7 +71,7 @@ static int get_int(struct json_object *o, const char *key)
 
 	i = json_object_get_int(so);
 
-	if (i < 0)
+	if (i == INT32_MIN)
 		error_exit();
 
 	if (i == INT32_MAX)
@@ -101,17 +101,7 @@ static double get_double(struct json_object *o, const char *key)
 			error_exit();
 
 	} else if (json_object_is_type(so, json_type_int)) {
-		int i;
-
-		i = json_object_get_int(so);
-
-		if (i == INT32_MIN)
-			error_exit();
-
-		if (i == INT32_MAX)
-			error_exit();
-
-		d = i;
+		d = get_int(so, NULL);
 	} else {
 		error_exit();
 	}
@@ -395,6 +385,22 @@ double get_amount(const char *filename)
 	json_object_put(o);
 
 	return d;
+}
+
+unsigned int get_time(const char *filename)
+{
+	struct json_object *o;
+	int i;
+
+	o = json_object_from_file(filename);
+	if (!o)
+		error_exit();
+
+	i = get_int(o, "time");
+
+	json_object_put(o);
+
+	return i;
 }
 
 char *alloc_txid(const char *filename)

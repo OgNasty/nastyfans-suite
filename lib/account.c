@@ -22,7 +22,6 @@ along with nastyfans-suite.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <dirent.h>
 #include <unistd.h>
-#include <time.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -85,10 +84,12 @@ static struct dirent *alloc_dirent(const char *dirpath)
 
 double account_amount(const char *name)
 {
-	unsigned int max_time = -1;
-	const char *account_root;
-	const char *max_time_str;
+	unsigned int max_ignore_time = -1;
+	unsigned int min_ignore_time = 0;
 	struct dirent *entry_buf;
+	const char *account_root;
+	int check_ignore = 0;
+	const char *time_str;
 	struct dirent *entry;
 	double amount = 0.0;
 	unsigned int time;
@@ -96,9 +97,17 @@ double account_amount(const char *name)
 	int ret;
 	DIR *d;
 
-	max_time_str = getenv("MAX_TIME");
-	if (max_time_str && max_time_str[0])
-		max_time = atoi(max_time_str);
+	time_str = getenv("MIN_IGNORE_TIME");
+	if (time_str && time_str[0]) {
+		min_ignore_time = atoi(time_str);
+		check_ignore = 1;
+	}
+
+	time_str = getenv("MAX_IGNORE_TIME");
+	if (time_str && time_str[0]) {
+		max_ignore_time = atoi(time_str);
+		check_ignore = 1;
+	}
 
 	name = name_to_dirname(name);
 
@@ -128,8 +137,12 @@ double account_amount(const char *name)
 			continue;
 
 		time = atoi(entry->d_name);
-		if (time > max_time)
+
+		if (check_ignore &&
+		    time >= min_ignore_time &&
+		    time <= max_ignore_time) {
 			continue;
+		}
 
 		ret = asprintf(&account_tx, "%s/%s", account, entry->d_name);
 		if (ret < 0)
@@ -234,6 +247,7 @@ void account_assignfee(const char *name, const char *txid)
 	const char *account_root;
 	struct dirent *entry_buf;
 	struct dirent *entry;
+	unsigned int time;
 	struct move mv;
 	double amount;
 	char *account;
@@ -278,6 +292,7 @@ void account_assignfee(const char *name, const char *txid)
 			amount = get_amount(account_tx);
 			if (amount < 0.0)
 				amount = -amount;
+			time = get_time(account_tx);
 			free(id);
 			free(account_tx);
 			break;
@@ -298,7 +313,7 @@ void account_assignfee(const char *name, const char *txid)
 	mv.otheraccount = name;
 	mv.account = "(FEE)";
 	mv.amount = amount;
-	mv.time = time(NULL);
+	mv.time = time;
 	mv.comment = txid;
 
 	account_move(&mv);

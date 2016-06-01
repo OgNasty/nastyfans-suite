@@ -55,6 +55,11 @@ int main(int argc, char *argv[])
 
 	if (argc != 1) {
 		fprintf(stderr, "usage: %s\n", argv[0]);
+		fprintf(stderr, "    mandatory environment variables:\n");
+		fprintf(stderr, "        ACCOUNT_ROOT\n");
+		fprintf(stderr, "    optional environment variables:\n");
+		fprintf(stderr, "        MIN_IGNORE_TIME\n");
+		fprintf(stderr, "        MAX_IGNORE_TIME\n");
 		return 1;
 	}
 

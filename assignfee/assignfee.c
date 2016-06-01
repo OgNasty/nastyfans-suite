@@ -24,6 +24,8 @@ int main(int argc, char *argv[])
 {
 	if (argc != 3) {
 		fprintf(stderr, "usage: %s \"toaccount\" txid\n", argv[0]);
+		fprintf(stderr, "    mandatory environment variables:\n");
+		fprintf(stderr, "        ACCOUNT_ROOT\n");
 		return 1;
 	}
 

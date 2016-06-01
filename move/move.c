@@ -31,6 +31,8 @@ int main(int argc, char *argv[])
 	if (argc != 4) {
 		fprintf(stderr, "usage: %s \"fromaccount\" "
 				"\"toaccount\" amount\n", argv[0]);
+		fprintf(stderr, "    mandatory environment variables:\n");
+		fprintf(stderr, "        ACCOUNT_ROOT\n");
 		return 1;
 	}
 

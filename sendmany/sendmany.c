@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
 	double amount_use_unspent = 0.0;
 	const char *change_address;
 	double amount_payout = 0.0;
+	const char *allow_overdraw;
 	double amount_fromaccount;
 	const char *listunspent;
 	struct unspent *ulist;
@@ -47,6 +48,15 @@ int main(int argc, char *argv[])
 	if (argc != 3) {
 		fprintf(stderr, "usage: %s \"fromaccount\" "
 				"{\"address\":amount,...}\n", argv[0]);
+		fprintf(stderr, "    mandatory environment variables:\n");
+		fprintf(stderr, "        ACCOUNT_ROOT\n");
+		fprintf(stderr, "        LISTUNSPENT\n");
+		fprintf(stderr, "        CHANGE_ADDRESS\n");
+		fprintf(stderr, "        TX_FEE\n");
+		fprintf(stderr, "    optional environment variables:\n");
+		fprintf(stderr, "        MIN_IGNORE_TIME\n");
+		fprintf(stderr, "        MAX_IGNORE_TIME\n");
+		fprintf(stderr, "        ALLOW_OVERDRAW\n");
 		return 1;
 	}
 
@@ -93,8 +103,14 @@ int main(int argc, char *argv[])
 
 	amount_payout += txfee;
 
-	if (amount_payout > amount_fromaccount)
-		error_exit();
+	allow_overdraw = getenv("ALLOW_OVERDRAW");
+	if (allow_overdraw && strcmp(allow_overdraw, "1") == 0) {
+		/* ignore that the account may not have enough funds */
+		;
+	} else {
+		if (amount_payout > amount_fromaccount)
+			error_exit();
+	}
 
 	for (u = ulist; u; u = u->next) {
 		amount_use_unspent += u->amount;
