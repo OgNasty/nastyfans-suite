@@ -31,10 +31,10 @@ along with nastyfans-suite.  If not, see <http://www.gnu.org/licenses/>.
 int main(int argc, char *argv[])
 {
 	struct payee *change_payee = NULL;
+	const char *allow_txfee_overdraw;
 	double amount_use_unspent = 0.0;
 	const char *change_address;
 	double amount_payout = 0.0;
-	const char *allow_overdraw;
 	double amount_fromaccount;
 	const char *listunspent;
 	struct unspent *ulist;
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "    optional environment variables:\n");
 		fprintf(stderr, "        MIN_IGNORE_TIME\n");
 		fprintf(stderr, "        MAX_IGNORE_TIME\n");
-		fprintf(stderr, "        ALLOW_OVERDRAW\n");
+		fprintf(stderr, "        ALLOW_TXFEE_OVERDRAW\n");
 		return 1;
 	}
 
@@ -101,11 +101,14 @@ int main(int argc, char *argv[])
 	if (!change_payee)
 		error_exit();
 
+	if (amount_payout > amount_fromaccount)
+		error_exit();
+
 	amount_payout += txfee;
 
-	allow_overdraw = getenv("ALLOW_OVERDRAW");
-	if (allow_overdraw && strcmp(allow_overdraw, "1") == 0) {
-		/* ignore that the account may not have enough funds */
+	allow_txfee_overdraw = getenv("ALLOW_TXFEE_OVERDRAW");
+	if (allow_txfee_overdraw && strcmp(allow_txfee_overdraw, "1") == 0) {
+		/* ignore account does not have enough funds for txfee */
 		;
 	} else {
 		if (amount_payout > amount_fromaccount)
