@@ -130,7 +130,9 @@ int main(int argc, char *argv[])
 	print_outputs(plist, amount_use_unspent);
 	printf("'`\n");
 
-	printf("bitcoin-cli signrawtransaction $RAW_TX '[]' \"[");
+	printf("bitcoin-cli signrawtransaction $RAW_TX '");
+	print_inputs(ulist, ulast, amount_use_unspent);
+	printf("' \"[");
 	for (u = ulist; u; u = u->next) {
 		printf("\\\"`bitcoin-cli dumpprivkey %s`\\\"", u->address);
 		if (u == ulast)

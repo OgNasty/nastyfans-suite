@@ -122,6 +122,7 @@ static struct unspent *alloc_unspent(struct json_object *o)
 
 	u->txid = get_string(o, "txid");
 	u->vout = get_int(o, "vout");
+	u->pubkey = get_string(o, "scriptPubKey");
 	u->address = get_string(o, "address");
 	u->amount = get_double(o, "amount");
 	if (u->amount < 0.00000001)
@@ -212,7 +213,8 @@ void print_inputs(struct unspent *ulist, struct unspent *ulast, double sum)
 	for (u = ulist; u; u = u->next) {
 		printf("{");
 		printf("\"txid\":\"%s\",", u->txid);
-		printf("\"vout\":%d", u->vout);
+		printf("\"vout\":%d,", u->vout);
+		printf("\"scriptPubKey\":\"%s\"", u->pubkey);
 		printf("}");
 
 		if (u != ulast)

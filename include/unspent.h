@@ -22,6 +22,7 @@ along with nastyfans-suite.  If not, see <http://www.gnu.org/licenses/>.
 struct unspent {
 	const char *txid;
 	int vout;
+	const char *pubkey;
 	const char *address;
 	double amount;
 	int confirmations;
