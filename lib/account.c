@@ -162,8 +162,22 @@ long long account_amount(const char *name)
 	return amount;
 }
 
+static void append_log_entry(const char *filename, const char *text)
+{
+	FILE *f;
+
+	f = fopen(filename, "a");
+	if (!f)
+		error_exit();
+
+	fprintf(f, "%s\n", text);
+
+	fclose(f);
+}
+
 static void do_account_move(const char *account_root, struct move *mv)
 {
+	const char *new_file_log;
 	const char *filename;
 	struct stat sb;
 	char *account;
@@ -213,6 +227,10 @@ static void do_account_move(const char *account_root, struct move *mv)
 	f = fopen(account, "wx");
 	if (!f)
 		error_exit();
+
+	new_file_log = getenv("NEW_FILE_LOG");
+	if (new_file_log && new_file_log[0])
+		append_log_entry(new_file_log, account);
 
 	write_account_move(f, mv);
 

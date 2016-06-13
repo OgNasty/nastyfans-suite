@@ -35,6 +35,8 @@ int main(int argc, char *argv[])
 				"\"toaccount\" amount\n", argv[0]);
 		fprintf(stderr, "    mandatory environment variables:\n");
 		fprintf(stderr, "        ACCOUNT_ROOT\n");
+		fprintf(stderr, "    optional environment variables:\n");
+		fprintf(stderr, "        NEW_FILE_LOG\n");
 		return 1;
 	}
 
