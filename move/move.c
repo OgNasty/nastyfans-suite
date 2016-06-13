@@ -21,7 +21,9 @@ along with nastyfans-suite.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <time.h>
 #include "account.h"
+#include "util.h"
 #include "move.h"
+#include "error.h"
 
 /* move "fromaccount" "toaccount" amount */
 int main(int argc, char *argv[])
@@ -40,7 +42,8 @@ int main(int argc, char *argv[])
 
 	mv.otheraccount = argv[1];
 	mv.account = argv[2];
-	mv.amount = strtod(argv[3], NULL);
+	if (btcstr2satoshi(argv[3], &mv.amount) != 0)
+		error_exit();
 	mv.time = time(NULL);
 
 	account_move(&mv);

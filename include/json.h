@@ -30,13 +30,13 @@ extern struct unspent *load_unspent(const char *filename,
 	struct unspent *(insert)(struct unspent *, struct unspent *));
 extern void unload_unspent(struct unspent *ulist);
 extern void print_inputs(struct unspent *ulist, struct unspent *ulast,
-			 double sum);
+			 long long sum);
 
 extern struct payee *parse_payee(const char *arg);
 extern void free_payee(struct payee *plist);
-extern void print_outputs(struct payee *plist, double max);
+extern void print_outputs(struct payee *plist, long long max);
 
-extern double get_amount(const char *filename);
+extern long long get_amount(const char *filename);
 extern unsigned int get_time(const char *filename);
 extern char *alloc_txid(const char *filename);
 

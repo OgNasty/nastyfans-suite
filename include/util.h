@@ -16,15 +16,13 @@ You should have received a copy of the GNU General Public License
 along with nastyfans-suite.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MOVE_H
-#define MOVE_H
+#ifndef UTIL_H
+#define UTIL_H
 
-struct move {
-	const char *account;
-	unsigned int time;
-	long long amount;
-	const char *otheraccount;
-	const char *comment;
-};
+#include <stdio.h>
 
-#endif /* MOVE_H */
+extern int btcstr2satoshi(const char *btcstr, long long *amount);
+extern int double2satoshi(double d, long long *amount);
+extern void fprint_satoshi2btc(FILE *f, long long satoshi);
+
+#endif /* UTIL_H */

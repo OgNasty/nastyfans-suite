@@ -21,7 +21,7 @@ along with nastyfans-suite.  If not, see <http://www.gnu.org/licenses/>.
 
 struct payee {
 	const char *address;
-	double amount;
+	long long amount;
 	struct payee *next;
 };
 

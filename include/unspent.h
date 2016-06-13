@@ -24,7 +24,7 @@ struct unspent {
 	int vout;
 	const char *pubkey;
 	const char *address;
-	double amount;
+	long long amount;
 	int confirmations;
 	struct unspent *next;
 };

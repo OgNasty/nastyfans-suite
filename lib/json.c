@@ -24,6 +24,7 @@ along with nastyfans-suite.  If not, see <http://www.gnu.org/licenses/>.
 #include "payee.h"
 #include "move.h"
 #include "account.h"
+#include "util.h"
 #include "error.h"
 
 static struct json_object *global_unspent_obj;
@@ -109,6 +110,21 @@ static double get_double(struct json_object *o, const char *key)
 	return d;
 }
 
+static long long get_satoshi(struct json_object *o, const char *key)
+{
+	long long amount;
+	double d;
+	int ret;
+
+	d = get_double(o, key);
+
+	ret = double2satoshi(d, &amount);
+	if (ret != 0)
+		error_exit();
+
+	return amount;
+}
+
 static struct unspent *alloc_unspent(struct json_object *o)
 {
 	struct unspent *u;
@@ -124,8 +140,8 @@ static struct unspent *alloc_unspent(struct json_object *o)
 	u->vout = get_int(o, "vout");
 	u->pubkey = get_string(o, "scriptPubKey");
 	u->address = get_string(o, "address");
-	u->amount = get_double(o, "amount");
-	if (u->amount < 0.00000001)
+	u->amount = get_satoshi(o, "amount");
+	if (u->amount < 1)
 		error_exit();
 	u->confirmations = get_int(o, "confirmations");
 
@@ -193,19 +209,19 @@ void unload_unspent(struct unspent *ulist)
 	global_ulist = NULL;
 }
 
-void print_inputs(struct unspent *ulist, struct unspent *ulast, double sum)
+void print_inputs(struct unspent *ulist, struct unspent *ulast, long long sum)
 {
 	struct unspent *u;
-	double d = 0.0;
+	long long a = 0;
 
 	for (u = ulist; u; u = u->next) {
-		d += u->amount;
+		a += u->amount;
 
 		if (u == ulast)
 			break;
 	}
 
-	if (d != sum)
+	if (a != sum)
 		error_exit();
 
 	printf("[");
@@ -294,8 +310,8 @@ struct payee *parse_payee(const char *arg)
 		if (!v)
 			error_exit();
 
-		p->amount = get_double(v, NULL);
-		if (p->amount < 0.00000000)
+		p->amount = get_satoshi(v, NULL);
+		if (p->amount < 0)
 			error_exit();
 
 		p_dup = find_payee(plist, p->address);
@@ -343,28 +359,29 @@ void free_payee(struct payee *plist)
 	global_payee_obj = NULL;
 }
 
-void print_outputs(struct payee *plist, double max)
+void print_outputs(struct payee *plist, long long max)
 {
 	struct payee *p;
-	double d = 0.0;
+	long long a = 0;
 
 	for (p = plist; p; p = p->next) {
-		if (p->amount < 0.00000001)
+		if (p->amount < 1)
 			continue;
 
-		d += p->amount;
+		a += p->amount;
 	}
 
-	if (d > max)
+	if (a > max)
 		error_exit();
 
 	printf("{");
 
 	for (p = plist; p; p = p->next) {
-		if (p->amount < 0.00000001)
+		if (p->amount < 1)
 			continue;
 
-		printf("\"%s\":%0.8f", p->address, p->amount);
+		printf("\"%s\":", p->address);
+		fprint_satoshi2btc(stdout, p->amount);
 
 		if (p->next)
 			printf(",");
@@ -373,20 +390,20 @@ void print_outputs(struct payee *plist, double max)
 	printf("}");
 }
 
-double get_amount(const char *filename)
+long long get_amount(const char *filename)
 {
 	struct json_object *o;
-	double d;
+	long long a;
 
 	o = json_object_from_file(filename);
 	if (!o)
 		error_exit();
 
-	d = get_double(o, "amount");
+	a = get_satoshi(o, "amount");
 
 	json_object_put(o);
 
-	return d;
+	return a;
 }
 
 unsigned int get_time(const char *filename)
@@ -479,7 +496,9 @@ void write_account_move(FILE *f, struct move *mv)
 	fprintf(f, "  \"account\": \"%s\",\n", mv->account);
 	fprintf(f, "  \"category\": \"move\",\n");
 	fprintf(f, "  \"time\": %u,\n", mv->time);
-	fprintf(f, "  \"amount\": %0.8f,\n", mv->amount);
+	fprintf(f, "  \"amount\": ");
+	fprint_satoshi2btc(f, mv->amount);
+	fprintf(f, ",\n");
 	fprintf(f, "  \"otheraccount\": \"%s\",\n", mv->otheraccount);
 	fprintf(f, "  \"comment\": \"%s\"\n", mv->comment ? mv->comment : "");
 	fprintf(f, "}\n");
@@ -492,7 +511,8 @@ void print_accounts(struct account *alist)
 	printf("{\n");
 
 	for (a = alist; a; a = a->next) {
-		printf("  \"%s\": %0.8f", account_get_name(a), a->amount);
+		printf("  \"%s\": ", account_get_name(a));
+		fprint_satoshi2btc(stdout, a->amount);
 		if (a->next)
 			printf(",");
 		printf("\n");

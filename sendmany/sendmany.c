@@ -26,16 +26,17 @@ along with nastyfans-suite.  If not, see <http://www.gnu.org/licenses/>.
 #include "account.h"
 #include "error.h"
 #include "json.h"
+#include "util.h"
 
 /* sendmany "fromaccount" {"address":amount,...} */
 int main(int argc, char *argv[])
 {
 	struct payee *change_payee = NULL;
 	const char *allow_txfee_overdraw;
-	double amount_use_unspent = 0.0;
+	long long amount_use_unspent = 0;
+	long long amount_fromaccount;
+	long long amount_payout = 0;
 	const char *change_address;
-	double amount_payout = 0.0;
-	double amount_fromaccount;
 	const char *listunspent;
 	struct unspent *ulist;
 	struct unspent *ulast;
@@ -43,7 +44,7 @@ int main(int argc, char *argv[])
 	struct payee *plist;
 	struct unspent *u;
 	struct payee *p;
-	double txfee;
+	long long txfee;
 
 	if (argc != 3) {
 		fprintf(stderr, "usage: %s \"fromaccount\" "
@@ -78,8 +79,10 @@ int main(int argc, char *argv[])
 	if (!txfee_str[0])
 		error_exit();
 
-	txfee = strtod(txfee_str, NULL);
-	if (txfee < 0.00000001)
+	if (btcstr2satoshi(txfee_str, &txfee) != 0)
+		error_exit();
+
+	if (txfee < 0)
 		error_exit();
 
 	plist = parse_payee(argv[2]);

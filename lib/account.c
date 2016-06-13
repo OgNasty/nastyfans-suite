@@ -82,16 +82,16 @@ static struct dirent *alloc_dirent(const char *dirpath)
 	return malloc(len);
 }
 
-double account_amount(const char *name)
+long long account_amount(const char *name)
 {
 	unsigned int max_ignore_time = -1;
 	unsigned int min_ignore_time = 0;
 	struct dirent *entry_buf;
 	const char *account_root;
+	long long amount = 0;
 	int check_ignore = 0;
 	const char *time_str;
 	struct dirent *entry;
-	double amount = 0.0;
 	unsigned int time;
 	char *account;
 	int ret;
@@ -231,7 +231,7 @@ void account_move(struct move *mv)
 
 	memcpy(&mv2, mv, sizeof(mv2));
 
-	mv2.amount *= -1.0;
+	mv2.amount = -mv2.amount;
 	s = mv2.account;
 	mv2.account = mv2.otheraccount;
 	mv2.otheraccount = s;
@@ -248,8 +248,8 @@ void account_assignfee(const char *name, const char *txid)
 	struct dirent *entry_buf;
 	struct dirent *entry;
 	unsigned int time;
+	long long amount;
 	struct move mv;
-	double amount;
 	char *account;
 	int ret;
 	DIR *d;
@@ -290,7 +290,7 @@ void account_assignfee(const char *name, const char *txid)
 
 		if (strcmp(txid, id) == 0) {
 			amount = get_amount(account_tx);
-			if (amount < 0.0)
+			if (amount < 0)
 				amount = -amount;
 			time = get_time(account_tx);
 			free(id);
@@ -327,7 +327,7 @@ struct account *accounts_load(
 	struct dirent *entry_buf;
 	struct dirent *entry;
 	struct account *a;
-	double amount;
+	long long amount;
 	DIR *d;
 
 	account_root = get_root();
@@ -351,9 +351,7 @@ struct account *accounts_load(
 
 		amount = account_amount(entry->d_name);
 
-		if (amount <= -0.00000001 || amount >= 0.00000001)
-			;
-		else
+		if (amount == 0)
 			continue;
 
 		a = calloc(1, sizeof(*a));

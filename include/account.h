@@ -21,14 +21,14 @@ along with nastyfans-suite.  If not, see <http://www.gnu.org/licenses/>.
 
 struct account {
 	char *name;
-	double amount;
+	long long amount;
 	struct account *next;
 };
 
 struct move;
 
 extern const char *account_get_name(struct account *a);
-extern double account_amount(const char *name);
+extern long long account_amount(const char *name);
 extern void account_move(struct move *mv);
 extern void account_assignfee(const char *name, const char *txid);
 extern struct account *accounts_load(
